@@ -1,6 +1,6 @@
 namespace DevQuestions.Domain.Reports;
 
-public enum Status
+public enum ReportStatus
 {
     OPEN = 1,
     IN_PROGRESS = 2,
