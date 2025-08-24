@@ -1,9 +1,10 @@
-﻿using DevQuestions.Application.Extensions;
-using DevQuestions.Application.Questions.Fails.Exceptions;
+﻿using CSharpFunctionalExtensions;
+using DevQuestions.Application.Extensions;
 using DevQuestions.Contracts.Questions;
 using DevQuestions.Domain.Questions;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Shared;
 
 namespace DevQuestions.Application.Questions;
 
@@ -23,13 +24,13 @@ public class QuestionsService : IQuestionsService
         _questionsRepository = questionsRepository;
     }
 
-    public async Task<Guid> Create(CreateQuestionDto request, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Errors>> Create(CreateQuestionDto request, CancellationToken cancellationToken)
     {
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
 
         if (!validationResult.IsValid)
         {
-            throw new QuestionValidationException(validationResult.ToErrors());
+            return validationResult.ToErrors();
         }
 
         int openedUserQuestionsCount = await _questionsRepository
@@ -37,7 +38,7 @@ public class QuestionsService : IQuestionsService
 
         if (openedUserQuestionsCount > 3)
         {
-            throw new TooManyQuestionsException();
+            return Fails.Errors.Questions.TooManyQuestions;
         }
 
         var questionId = Guid.NewGuid();
@@ -56,41 +57,4 @@ public class QuestionsService : IQuestionsService
 
         return questionId;
     }
-
-    // todo: доделать
-
-    // public async Task Update(
-    //     Guid questionId,
-    //     UpdateQuestionDto request,
-    //     CancellationToken cancellationToken)
-    // {
-    //     var question = await _questionsRepository.GetByIdAsync(questionId, cancellationToken);
-    //
-    //     await _questionsRepository.UpdateAsync(question, cancellationToken);
-    //
-    //     _logger.LogInformation("Question updated with id {questionId}", questionId);
-    // }
-    //
-    // public async Task Delete(
-    //     Guid questionId,
-    //     CancellationToken cancellationToken)
-    // {
-    //     var question = await _questionsRepository.DeleteAsync(questionId, cancellationToken);
-    //
-    //     _logger.LogInformation("Question deleted with id {questionId}", questionId);
-    // }
-    //
-    // public async Task AddAnswer(
-    //     Guid questionId,
-    //     AddAnswerDto request,
-    //     CancellationToken cancellationToken)
-    // {
-    // }
-    //
-    // public async Task SelectSolution(
-    //     Guid questionId,
-    //     Guid solutionId,
-    //     CancellationToken cancellationToken)
-    // {
-    // }
 }
