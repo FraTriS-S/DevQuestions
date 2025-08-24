@@ -1,4 +1,6 @@
-﻿using DevQuestions.Contracts.Questions;
+﻿using DevQuestions.Application.Extensions;
+using DevQuestions.Application.Questions.Fails.Exceptions;
+using DevQuestions.Contracts.Questions;
 using DevQuestions.Domain.Questions;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -27,15 +29,15 @@ public class QuestionsService : IQuestionsService
 
         if (!validationResult.IsValid)
         {
-            throw new ValidationException(validationResult.Errors);
+            throw new QuestionValidationException(validationResult.ToErrors());
         }
 
-        int openedUserQuestionsCount = await _questionsRepository.GetOpenedUserQuestionsCountAsync(
-            request.UserId, cancellationToken);
+        int openedUserQuestionsCount = await _questionsRepository
+            .GetOpenedUserQuestionsCountAsync(request.UserId, cancellationToken);
 
         if (openedUserQuestionsCount > 3)
         {
-            throw new Exception("Пользователь не может открыть больше 3 вопросов");
+            throw new TooManyQuestionsException();
         }
 
         var questionId = Guid.NewGuid();
@@ -56,6 +58,7 @@ public class QuestionsService : IQuestionsService
     }
 
     // todo: доделать
+
     // public async Task Update(
     //     Guid questionId,
     //     UpdateQuestionDto request,
