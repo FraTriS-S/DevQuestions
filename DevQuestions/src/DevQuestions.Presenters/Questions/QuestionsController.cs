@@ -1,5 +1,6 @@
 using DevQuestions.Application.Questions;
 using DevQuestions.Contracts.Questions;
+using DevQuestions.Presenters.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevQuestions.Presenters.Questions;
@@ -20,59 +21,8 @@ public class QuestionsController : ControllerBase
         [FromBody] CreateQuestionDto request,
         CancellationToken cancellationToken)
     {
-        var questionId = await _questionsService.Create(request, cancellationToken);
-        return Ok(questionId);
-    }
+        var result = await _questionsService.Create(request, cancellationToken);
 
-    // todo: доделать
-    // [HttpGet("{questionId:guid}")]
-    // public async Task<IActionResult> GetById(
-    //     [FromRoute] Guid questionId,
-    //     CancellationToken cancellationToken)
-    // {
-    //     return Ok();
-    // }
-    //
-    // [HttpGet]
-    // public async Task<IActionResult> Get(
-    //     [FromQuery] GetQuestionsDto request,
-    //     CancellationToken cancellationToken)
-    // {
-    //     return Ok();
-    // }
-    //
-    // [HttpPut("{questionId:guid}")]
-    // public async Task<IActionResult> Update(
-    //     [FromRoute] Guid questionId,
-    //     [FromBody] UpdateQuestionDto request,
-    //     CancellationToken cancellationToken)
-    // {
-    //     return Ok();
-    // }
-    //
-    // [HttpDelete("{questionId:guid}")]
-    // public async Task<IActionResult> Delete(
-    //     [FromRoute] Guid questionId,
-    //     CancellationToken cancellationToken)
-    // {
-    //     return Ok();
-    // }
-    //
-    // [HttpPost("{questionId:guid}/answers")]
-    // public async Task<ActionResult> AddAnswer(
-    //     [FromRoute] Guid questionId,
-    //     [FromBody] AddAnswerDto request,
-    //     CancellationToken cancellationToken)
-    // {
-    //     return Ok();
-    // }
-    //
-    // [HttpPut("{questionId:guid}/solution")]
-    // public async Task<IActionResult> SelectSolution(
-    //     [FromRoute] Guid questionId,
-    //     [FromQuery] Guid solutionId,
-    //     CancellationToken cancellationToken)
-    // {
-    //     return Ok();
-    // }
+        return result.ToResponse();
+    }
 }
