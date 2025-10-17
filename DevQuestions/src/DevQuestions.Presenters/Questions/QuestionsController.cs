@@ -1,4 +1,6 @@
-using DevQuestions.Application.Questions;
+using DevQuestions.Application.Abstractions;
+using DevQuestions.Application.Questions.AddAnswer;
+using DevQuestions.Application.Questions.CreateQuestion;
 using DevQuestions.Contracts.Questions;
 using DevQuestions.Presenters.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -9,19 +11,69 @@ namespace DevQuestions.Presenters.Questions;
 [Route("[controller]")]
 public class QuestionsController : ControllerBase
 {
-    private readonly IQuestionsService _questionsService;
-
-    public QuestionsController(IQuestionsService questionsService)
-    {
-        _questionsService = questionsService;
-    }
-
     [HttpPost]
-    public async Task<ActionResult> Create(
+    public async Task<IActionResult> Create(
+        [FromServices] ICommandHandler<CreateQuestionCommand, Guid> handler,
         [FromBody] CreateQuestionDto request,
         CancellationToken cancellationToken)
     {
-        var result = await _questionsService.Create(request, cancellationToken);
+        var command = new CreateQuestionCommand(request);
+        var result = await handler.Handle(command, cancellationToken);
+
+        return result.ToResponse();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Get(
+        [FromQuery] GetQuestionsDto request,
+        CancellationToken cancellationToken)
+    {
+        return Ok("Questions get");
+    }
+
+    [HttpGet("{questionId:guid}")]
+    public async Task<IActionResult> GetById(
+        [FromRoute] Guid questionId,
+        CancellationToken cancellationToken)
+    {
+        return Ok("Question get");
+    }
+
+    [HttpPut("{questionId:guid}")]
+    public async Task<IActionResult> Update(
+        [FromRoute] Guid questionId,
+        [FromBody] UpdateQuestionDto request,
+        CancellationToken cancellationToken)
+    {
+        return Ok("Question updated");
+    }
+
+    [HttpDelete("{questionId:guid}")]
+    public async Task<IActionResult> Delete(
+        [FromRoute] Guid questionId,
+        CancellationToken cancellationToken)
+    {
+        return Ok("Question deleted");
+    }
+
+    [HttpPut("{questionId:guid}/solution")]
+    public async Task<IActionResult> SelectSolution(
+        [FromRoute] Guid questionId,
+        [FromQuery] Guid answerId,
+        CancellationToken cancellationToken)
+    {
+        return Ok("Solution selected");
+    }
+
+    [HttpPost("{questionId:guid}/answers")]
+    public async Task<IActionResult> AddAnswer(
+        [FromServices] ICommandHandler<AddAnswerCommand, Guid> handler,
+        [FromRoute] Guid questionId,
+        [FromQuery] AddAnswerDto request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AddAnswerCommand(questionId, request);
+        var result = await handler.Handle(command, cancellationToken);
 
         return result.ToResponse();
     }

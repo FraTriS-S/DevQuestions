@@ -35,5 +35,5 @@ public record Error
     public static Error Failure(string? code, string message) =>
         new(code ?? "value.is.conflict", message, ErrorType.FAILURE);
 
-    public Errors ToErrors() => this;
+    public Failure ToErrors() => this;
 }

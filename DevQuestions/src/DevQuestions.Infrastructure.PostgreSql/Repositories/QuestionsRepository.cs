@@ -1,6 +1,8 @@
-﻿using DevQuestions.Application.Questions;
+﻿using CSharpFunctionalExtensions;
+using DevQuestions.Application.Questions;
 using DevQuestions.Domain.Questions;
 using Microsoft.EntityFrameworkCore;
+using Shared;
 
 namespace DevQuestions.Infrastructure.PostgreSql.Repositories;
 
@@ -26,7 +28,7 @@ public class QuestionsRepository : IQuestionsRepository
 
     public Task<Guid> DeleteAsync(Guid id, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-    public async Task<Question?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Result<Question, Failure>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var question = await _questionsDbContext.Questions
             .Include(x => x.Answers)
@@ -35,11 +37,18 @@ public class QuestionsRepository : IQuestionsRepository
 
         if (question is null)
         {
-            throw new Exception("Question not found");
+            return Application.Questions.Fails.Errors.General.NotFound(id);
         }
 
         return question;
     }
 
     public Task<int> GetOpenedUserQuestionsCountAsync(Guid userId, CancellationToken cancellationToken) => throw new NotImplementedException();
+
+    public async Task<Guid> SaveAsync(Question question, CancellationToken cancellationToken)
+    {
+        _questionsDbContext.Attach(question);
+        await _questionsDbContext.SaveChangesAsync(cancellationToken);
+        return question.Id;
+    }
 }

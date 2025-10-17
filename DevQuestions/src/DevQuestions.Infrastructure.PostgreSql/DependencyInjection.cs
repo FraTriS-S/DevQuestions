@@ -1,4 +1,5 @@
-﻿using DevQuestions.Application.Questions;
+﻿using DevQuestions.Application.Database;
+using DevQuestions.Application.Questions;
 using DevQuestions.Infrastructure.PostgreSql.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,5 +11,6 @@ public static class DependencyInjection
     {
         services.AddScoped<IQuestionsRepository, QuestionsRepository>();
         services.AddScoped<QuestionsDbContext>();
+        services.AddScoped<ITransactionManager, TransactionManager>();
     }
 }

@@ -7,21 +7,21 @@ namespace DevQuestions.Presenters.Extensions;
 
 public static class ResponseExtensions
 {
-    public static ActionResult ToResponse<TValue>(this Result<TValue, Errors> result)
+    public static ActionResult ToResponse<TValue>(this Result<TValue, Failure> result)
     {
         return result.IsSuccess
             ? new OkObjectResult(result.Value)
             : GetErrorResult(result.Error);
     }
 
-    private static ObjectResult GetErrorResult(Errors errors)
+    private static ObjectResult GetErrorResult(Failure failure)
     {
-        if (!errors.Any())
+        if (!failure.Any())
         {
             return new ObjectResult(null) { StatusCode = StatusCodes.Status500InternalServerError };
         }
 
-        var distinctErrorTypes = errors
+        var distinctErrorTypes = failure
             .Select(x => x.Type)
             .Distinct()
             .ToList();
@@ -30,7 +30,7 @@ public static class ResponseExtensions
             ? StatusCodes.Status500InternalServerError
             : GetStatusCodeFromErrorType(distinctErrorTypes[0]);
 
-        return new ObjectResult(errors) { StatusCode = statusCode };
+        return new ObjectResult(failure) { StatusCode = statusCode };
     }
 
     private static int GetStatusCodeFromErrorType(ErrorType errorType) =>

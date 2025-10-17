@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using DevQuestions.Application.Abstractions;
 using DevQuestions.Application.Extensions;
 using DevQuestions.Contracts.Questions;
 using DevQuestions.Domain.Questions;
@@ -6,16 +7,16 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared;
 
-namespace DevQuestions.Application.Questions;
+namespace DevQuestions.Application.Questions.CreateQuestion;
 
-public class QuestionsService : IQuestionsService
+public class CreateQuestionHandler : ICommandHandler<CreateQuestionCommand, Guid>
 {
-    private readonly ILogger<QuestionsService> _logger;
+    private readonly ILogger<CreateQuestionHandler> _logger;
     private readonly IValidator<CreateQuestionDto> _validator;
     private readonly IQuestionsRepository _questionsRepository;
 
-    public QuestionsService(
-        ILogger<QuestionsService> logger,
+    public CreateQuestionHandler(
+        ILogger<CreateQuestionHandler> logger,
         IValidator<CreateQuestionDto> validator,
         IQuestionsRepository questionsRepository)
     {
@@ -24,32 +25,33 @@ public class QuestionsService : IQuestionsService
         _questionsRepository = questionsRepository;
     }
 
-    public async Task<Result<Guid, Errors>> Create(CreateQuestionDto request, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Failure>> Handle(
+        CreateQuestionCommand command, CancellationToken cancellationToken)
     {
-        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        var validationResult = await _validator.ValidateAsync(command.CreateQuestionDto, cancellationToken);
 
         if (!validationResult.IsValid)
         {
-            return validationResult.ToErrors();
+            return validationResult.ToFailure();
         }
 
         int openedUserQuestionsCount = await _questionsRepository
-            .GetOpenedUserQuestionsCountAsync(request.UserId, cancellationToken);
+            .GetOpenedUserQuestionsCountAsync(command.CreateQuestionDto.UserId, cancellationToken);
 
         if (openedUserQuestionsCount > 3)
         {
-            return Fails.Errors.Questions.TooManyQuestions;
+            return Fails.Errors.Questions.TooManyQuestions();
         }
 
         var questionId = Guid.NewGuid();
 
         Question question = new(
             questionId,
-            request.Title,
-            request.Text,
+            command.CreateQuestionDto.Title,
+            command.CreateQuestionDto.Text,
             null,
-            request.UserId,
-            request.TagsIds);
+            command.CreateQuestionDto.UserId,
+            command.CreateQuestionDto.TagsIds);
 
         questionId = await _questionsRepository.AddAsync(question, cancellationToken);
 
