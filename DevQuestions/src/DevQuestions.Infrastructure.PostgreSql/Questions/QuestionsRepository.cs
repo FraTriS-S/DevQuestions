@@ -4,7 +4,7 @@ using DevQuestions.Domain.Questions;
 using Microsoft.EntityFrameworkCore;
 using Shared;
 
-namespace DevQuestions.Infrastructure.PostgreSql.Repositories;
+namespace DevQuestions.Infrastructure.PostgreSql.Questions;
 
 public class QuestionsRepository : IQuestionsRepository
 {
